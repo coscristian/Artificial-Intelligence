@@ -163,14 +163,6 @@ def convert_moves(moves):
         converted_moves.append((3 - pair[0], 3 - pair[1]))
     return converted_moves
 
-"""
-Parameters
-  player: tuple() Stores the position x, y of the player
-  board: Board of the game
-
-Return 
-  legal_moves: [] Legal movemements for the player
-"""
 def generate_legal_moves(player, board):
   enemy_turn = False
   legal_moves = []
@@ -184,20 +176,21 @@ def generate_legal_moves(player, board):
         legal_moves = convert_moves(legal_moves)
     else:
         legal_moves = check_diagonal_moves(x, y, board, False)
-    
+    print("Legal moves")
     for move in legal_moves:
         if move != None:
             print(move) 
   except Exception:
     print("No hay movimientos disponibles")
-  #print(legal_moves) 
 
 board = [[4,0,0,0],
          [0,3,0,0],
          [0,0,1,0],
          [0,2,0,0]
          ]
-generate_legal_moves((3,1), board)
+
+
+generate_legal_moves((2,2), board)
      
 #print(generar_movimientos(board1, 'o'))
 """
