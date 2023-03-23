@@ -8,23 +8,8 @@ def scoreCount(board):
           if column <= 2: #My pieces
             score += 1
     return score  
-    """
-    #Until
-    for (piece, value) in [(chess.PAWN, 10), (chess.BISHOP, 30), (chess.KING, 900), (chess.QUEEN, 90), 
-                           (chess.KNIGHT, 30), (chess.ROOK, 50)]:
-        score += len(board.pieces(piece, chess.WHITE)) * value
-        score -= len(board.pieces(piece, chess.BLACK)) * value
-    if board.is_checkmate():
-        score += 100
-    elif board.is_check():
-        score += 30
-    return score
-    """
-
-#print(scoreCount(board))
 
 def count_right_diagonal_enemies(x, y, board, enemy_turn):
-  
   if enemy_turn:
     enemy_piece =  board[x - 1][y - 1] <= 2
   else:
@@ -63,22 +48,7 @@ def count_left_diagonal_enemies(x, y, board, enemy_turn):
   print("Left Enemies: ", total_left_diag)
   return total_left_diag
 
-"""
-def check_up_move(x, y, board):
-    if board[x-1][y] == 0:
-      legal_moves.append((x-1, y)) #Add the legal up movement
-
-
-If y == 0
-  check right diagonal
-elif y == last_column
-  check left diagonal
-else:
-  check both diagonal sides
-"""
-
 def check_move_left_diagonal(x, y, board, enemy_turn):
-  
   if enemy_turn:
     if board[x-1][y-1] >= 3:
         return None
@@ -99,8 +69,10 @@ def check_move_left_diagonal(x, y, board, enemy_turn):
   if y - amount_left_diag_pieces > 0 and x - amount_left_diag_pieces > 0:
     legal_x = x - amount_left_diag_pieces - 1
     legal_y = y - amount_left_diag_pieces - 1
+    
     return (legal_x, legal_y)
     #board[x - amount_left_diag_pieces - 1][y - amount_left_diag_pieces - 1] = 1 #Place the player one
+  
   return None
 
 def check_move_right_diagonal(x, y, board, enemy_turn):
@@ -126,21 +98,117 @@ def check_move_right_diagonal(x, y, board, enemy_turn):
     #board[x - amount_left_diag_pieces - 1][y - amount_left_diag_pieces - 1] = 1 #Place the player one
   return None
 
-def check_diagonal_moves(x,y,board, enemy_turn):
+def count_legal_moves(moves):
+   legal_moves = []
+   for move in moves:
+      if move != None:
+         legal_moves.append()
+   return len(legal_moves)
+
+def get_enemy_board_pieces(board, enemy_turn):
+  board_pieces = []
+  for i in range(len(board)):
+    for j in range(len(board[i])):
+        if not enemy_turn:   
+          if board[i][j] > 2:
+            board_pieces.append(board[i][j])
+        elif board[i][j] <= 2:
+            board_pieces.append(board[i][j])
+  return board_pieces
+
+def get_piece_position(board, piece):
+   for i in range(len(board)):
+      for j in range(len(board[i])):
+         if board[i][j] == piece:
+            return (i, j)
+
+def can_only_eat_one_piece(board, x, y):
+  if board[x - 1][y - 1] != 0 or board[x-1][y + 1] != 0:
+    return True
+  return False
+
+"""
+  Checks if a piece with a given position can eat a enemy piece
+  if can eat
+    returns the position to eat
+  else:
+    returns a tuple of None
+"""
+def can_eat(board, x, y, enemy_turn):
+  enemy_pieces = get_enemy_board_pieces(board, enemy_turn)
+  for enemy_piece in enemy_pieces:
+    if enemy_piece == board[x - 1][y - 1]:
+      return [x - 1, y - 1]
+    elif enemy_piece == board[x - 1][y + 1]:
+      return [x - 1, y + 1]
+  return (None, None)
+
+def eat_piece(board, x_to_eat, y_to_eat):
+  print(x_to_eat)
+  board[x_to_eat][y_to_eat] = 0
+
+def move_to_new_position(board, x_to_move, y_to_move):
+  board[x_to_move][y_to_move] = 3 #Change this piece, it must be dinamically
+
+def delete_current_position(board, x, y):
+  board[x][y] = 0
+
+def can_eat_both_pieces(board, x, y, enemy_turn):
+  enemy_pieces = get_enemy_board_pieces(board, enemy_turn)
+  if board[x - 1][y - 1] not in enemy_pieces:
+      return False
+  if board[x - 1][y + 1] not in enemy_pieces:
+      return False
+  return True
+
+def check_diagonal_moves(x, y, board, enemy_turn):
   moves = []
   if x > 0: #Can move up
     if y == 0: # Check only right diagonal
       legal_move = check_move_right_diagonal(x, y, board, enemy_turn)
-      moves.append(legal_move)
+      if legal_move is not None: 
+        moves.append(legal_move)
     elif y == len(board[0]) - 1: # Check only left diagonal
       legal_move = check_move_left_diagonal(x, y, board, enemy_turn)
-      moves.append(legal_move)
+      if legal_move is not None: 
+        moves.append(legal_move)
     else: #check both diagonal sides
       left_legal_move = check_move_left_diagonal(x, y, board, enemy_turn)
       right_legal_move = check_move_right_diagonal(x, y, board, enemy_turn)
-      moves.append(left_legal_move)
-      moves.append(right_legal_move)
-  
+      if left_legal_move is not None: 
+        moves.append(left_legal_move)
+      if right_legal_move is not None: 
+        moves.append(right_legal_move)
+
+    number_legal_moves = len(moves)
+    if number_legal_moves == 1:
+      x_to_eat, y_to_eat = can_eat(board, x, y, enemy_turn)
+      x_to_move = moves[0][0]
+      y_to_move = moves[0][1]
+      if x_to_eat is not None:
+        eat_piece(board, x_to_eat, y_to_eat)
+        #move_to_new_position(board, x_to_eat - 1, y_to_eat - 1)
+      move_to_new_position(board, x_to_move, y_to_move)
+      delete_current_position(board, x, y)
+    elif number_legal_moves == 2:
+      if can_eat_both_pieces(board, x, y, enemy_turn):
+         #if not enemy_turn:
+        x_to_eat, y_to_eat = get_piece_position(board, min(get_enemy_board_pieces(board, enemy_turn)))
+        eat_piece(board, x_to_eat, y_to_eat)
+        move_to_new_position(board, x_to_eat - 1, y_to_eat - 1)
+        delete_current_position(board, x, y)
+         #else:
+        #    x_to_eat, y_to_eat = get_piece_position(board, min(get_enemy_board_pieces(board, enemy_turn)))
+        #    get_piece_position()
+      elif can_only_eat_one_piece(board, x, y): # There is a empty position and a busy position
+        x_to_eat, y_to_eat = x - 1, y - 1 if board[x-1][y+1] == 0 else x - 1, y + 1
+        #if position_has_enemy(moves, enemy_turn):
+        eat_piece(x_to_eat, y_to_eat)
+        move_to_new_position(board, x_to_eat - 1, y_to_eat - 1)
+        delete_current_position(board, x, y)
+      else:
+        move_to_new_position(board, x - 1, y - 1)
+        delete_current_position(board, x, y)
   return moves
 
 def print_board(board):
@@ -168,123 +236,27 @@ def generate_legal_moves(player, board):
   legal_moves = []
   x = player[0]
   y = player[1]
-  
-  try:
-    if enemy_turn:
-        board = inverse_board(board[:])
-        legal_moves = check_diagonal_moves(3 - x, 3 - y, board, enemy_turn)
-        legal_moves = convert_moves(legal_moves)
-    else:
-        legal_moves = check_diagonal_moves(x, y, board, False)
-    print("Legal moves")
-    for move in legal_moves:
-        if move != None:
-            print(move) 
-  except Exception:
-    print("No hay movimientos disponibles")
 
-board = [[4,0,0,0],
-         [0,3,0,0],
+  #try:
+  if enemy_turn:
+      board = inverse_board(board[:])
+      legal_moves = check_diagonal_moves(3 - x, 3 - y, board, enemy_turn)
+      legal_moves = convert_moves(legal_moves)
+  else:
+      legal_moves = check_diagonal_moves(x, y, board, False)
+  print("Legal moves")
+  for move in legal_moves:
+      if move != None:
+          print(move) 
+  print_board(board)
+ # except Exception:
+  #  print("No hay movimientos disponibles")
+
+board = [[0,0,0,0],
+         [0,4,0,3],
          [0,0,1,0],
          [0,2,0,0]
          ]
 
-
 generate_legal_moves((2,2), board)
      
-#print(generar_movimientos(board1, 'o'))
-"""
-def minimax(board, depth, max_player, alpha, beta):
-    if depth==0 or board.is_game_over():
-        return scoreCount(board), None
-    moves = list(board.legal_moves)
-    random.shuffle(moves)
-    if max_player:
-        max_eval = -float("Inf")
-        for move in moves:
-            board.push(move)
-            current_eval,curMove= minimax(board, depth-1,False, alpha,beta)
-            board.pop()
-            if current_eval>max_eval:
-                max_eval = current_eval
-                best_move = move
-                alpha = max(alpha, max_eval)
-                if beta<=alpha:
-                    break
-        return max_eval, best_move
-    else:
-        min_eval = float("Inf")
-        for move in moves:
-            board.push(move)
-            current_eval,curMove = minimax(board, depth-1,True,alpha, beta)
-            board.pop()
-            if current_eval<min_eval:
-                min_eval = current_eval
-                best_move = move
-                beta = min(beta, min_eval)
-                if beta<=alpha:
-                    break
-        return min_eval, best_move
-
-"""
-
-
-
-"""
-        if board[x-1][y-1] == 0:
-          moves.append((x-1,y-1))
-        else: 
-          #Can eat at least one enemy piece, but must check if can eat more enemy pieces
-          #So, count the pieces which are in the diagonal
-          #amount_left_diag_pieces, amount_right_diag_pieces = count_enemy_pieces_diagonal(x, y, board)
-
-          amount_left_diag_pieces = count_left_diagonal_enemies(x, y, board)
-        
-        #Check if my piece can be placed in a casilla after eating the enemy pieces
-        if y - amount_left_diag_pieces > 0 and x - amount_left_diag_pieces > 0:
-          legal_x = x - amount_left_diag_pieces - 1
-          legal_y = y - amount_left_diag_pieces - 1
-          moves.append((legal_x, legal_y))
-          #board[x - amount_left_diag_pieces - 1][y - amount_left_diag_pieces - 1] = 1 #Place the player one
-
-        if y + amount_right_diag_pieces < len(board[0]) - 1 and x - amount_right_diag_pieces > 0:
-          legal_x = x + amount_left_diag_pieces + 1
-          legal_y = y + amount_left_diag_pieces + 1
-          moves.append((legal_x, legal_y))
-        
-        #Positions to delete every enemy piece
-        new_x = x 
-        new_y = y
-        #Delete the enemy pieces that have been eaten
-        for i in range(amount_left_diag_pieces):
-          new_x -= 1
-          new_y -= 1
-          board[new_x][new_y] = 0
-
-  #Right diagonal move
-  if y < len(board[0]) - 1:
-    if board[x-1][y + 1] == 0:
-      moves.append((x-1, y+1))
-    else:
-      #Can eat at least one enemy piece, but must check if can eat more enemy pieces
-      #So, count the pieces which are in the diagonal
-      amount_right_diag_pieces = count_enemy_pieces_diagonal(x, y, board)[1]
-      
-      #Check if my piece can be placed in a casilla after eating the enemy pieces
-      if y + amount_right_diag_pieces < len(board[0]) - 1 and x - amount_right_diag_pieces > 0:
-        legal_x = x + amount_left_diag_pieces + 1
-        legal_y = y + amount_left_diag_pieces + 1
-        moves.append((legal_x, legal_y))
-        #board[x - amount_left_diag_pieces - 1][y - amount_left_diag_pieces - 1] = 1 #Place the player one
-
-      #Positions to delete every enemy piece
-      new_x = x 
-      new_y = y
-      #Delete the enemy pieces that have been eaten
-      for i in range(amount_left_diag_pieces):
-        new_x -= 1
-        new_y -= 1
-        board[new_x][new_y] = 0
-
-      #amount_right_diag_pieces = count_enemy_pieces_diagonal(x, y, board)[1]
-"""
