@@ -23,21 +23,43 @@ def scoreCount(board):
 
 #print(scoreCount(board))
 
-def count_right_diagonal_enemies(x, y, board):
+def count_right_diagonal_enemies(x, y, board, enemy_turn):
+  
+  if enemy_turn:
+    enemy_piece =  board[x - 1][y - 1] <= 2
+  else:
+    enemy_piece =  board[x - 1][y - 1] > 2
+
   total_right_diag = 0
-  while y < len(board[0]) - 1 and x > 0 and board[x - 1][y + 1] > 2:
+  while y < len(board[0]) - 1 and x > 0 and enemy_piece and board[x - 1][y - 1] != 0:
     total_right_diag += 1
     x -= 1
     y += 1
+    if enemy_turn:
+        enemy_piece =  board[x - 1][y - 1] <= 2
+    else:
+        enemy_piece =  board[x - 1][y - 1] > 2
   print("Right Enemies: ", total_right_diag)
   return total_right_diag
 
-def count_left_diagonal_enemies(x, y, board):
+def count_left_diagonal_enemies(x, y, board, enemy_turn):
+
+  if enemy_turn:
+    enemy_piece =  board[x - 1][y - 1] <= 2
+  else:
+    enemy_piece =  board[x - 1][y - 1] > 2
+
   total_left_diag = 0
-  while y > 0 and x > 0 and board[x - 1][y - 1] > 2:
+  while y > 0 and x > 0 and enemy_piece and board[x - 1][y - 1] != 0:
+    
     total_left_diag += 1
     x -= 1
     y -= 1
+    if enemy_turn:
+        enemy_piece =  board[x - 1][y - 1] <= 2
+    else:
+        enemy_piece =  board[x - 1][y - 1] > 2
+
   print("Left Enemies: ", total_left_diag)
   return total_left_diag
 
@@ -55,8 +77,15 @@ else:
   check both diagonal sides
 """
 
-def check_move_left_diagonal(x, y, board):
+def check_move_left_diagonal(x, y, board, enemy_turn):
   
+  if enemy_turn:
+    if board[x-1][y-1] >= 3:
+        return None
+  else:
+    if 0 < board[x-1][y-1] <= 2:
+        return None
+
   if board[x-1][y-1] == 0:
     return (x - 1, y - 1)
 
@@ -64,7 +93,7 @@ def check_move_left_diagonal(x, y, board):
   #So, count the pieces which are in the diagonal
   #amount_left_diag_pieces, amount_right_diag_pieces = count_enemy_pieces_diagonal(x, y, board)
 
-  amount_left_diag_pieces = count_left_diagonal_enemies(x, y, board)
+  amount_left_diag_pieces = count_left_diagonal_enemies(x, y, board, enemy_turn)
   
   #Check if my piece can be placed in a casilla after eating the enemy pieces
   if y - amount_left_diag_pieces > 0 and x - amount_left_diag_pieces > 0:
@@ -74,13 +103,20 @@ def check_move_left_diagonal(x, y, board):
     #board[x - amount_left_diag_pieces - 1][y - amount_left_diag_pieces - 1] = 1 #Place the player one
   return None
 
-def check_move_right_diagonal(x, y, board):
+def check_move_right_diagonal(x, y, board, enemy_turn):
+  if enemy_turn:
+    if board[x-1][y + 1] >= 3:
+        return None
+  else:
+    if 0 < board[x-1][y + 1] <= 2:
+        return None
+    
   if board[x-1][y + 1] == 0:
     return (x - 1, y + 1)
 
   #Can eat at least one enemy piece, but must check if can eat more enemy pieces
   #So, count the pieces which are in the diagonal
-  amount_right_diag_enemies = count_right_diagonal_enemies(x, y, board)
+  amount_right_diag_enemies = count_right_diagonal_enemies(x, y, board, enemy_turn)
   
   #Check if my piece can be placed in a casilla after eating the enemy pieces
   if y + amount_right_diag_enemies < len(board[0]) - 1 and x - amount_right_diag_enemies > 0:
@@ -90,22 +126,42 @@ def check_move_right_diagonal(x, y, board):
     #board[x - amount_left_diag_pieces - 1][y - amount_left_diag_pieces - 1] = 1 #Place the player one
   return None
 
-def check_diagonal_moves(x,y,board):
+def check_diagonal_moves(x,y,board, enemy_turn):
   moves = []
   if x > 0: #Can move up
     if y == 0: # Check only right diagonal
-      legal_move = check_move_right_diagonal(x, y, board)
+      legal_move = check_move_right_diagonal(x, y, board, enemy_turn)
       moves.append(legal_move)
     elif y == len(board[0]) - 1: # Check only left diagonal
-      legal_move = check_move_left_diagonal(x, y, board)
+      legal_move = check_move_left_diagonal(x, y, board, enemy_turn)
       moves.append(legal_move)
     else: #check both diagonal sides
-      left_legal_move = check_move_left_diagonal(x, y, board)
-      right_legal_move = check_move_right_diagonal(x, y, board)
+      left_legal_move = check_move_left_diagonal(x, y, board, enemy_turn)
+      right_legal_move = check_move_right_diagonal(x, y, board, enemy_turn)
       moves.append(left_legal_move)
       moves.append(right_legal_move)
   
   return moves
+
+def print_board(board):
+  for i in board:
+    for j in i:
+      print(j, end=" ")
+    print()
+
+def inverse_board(board):
+  result = []
+  board.reverse()
+  for row in board:
+    row.reverse()
+    result.append(row)
+  return result
+
+def convert_moves(moves):
+    converted_moves = []
+    for index, pair in enumerate(moves):
+        converted_moves.append((3 - pair[0], 3 - pair[1]))
+    return converted_moves
 
 """
 Parameters
@@ -116,22 +172,32 @@ Return
   legal_moves: [] Legal movemements for the player
 """
 def generate_legal_moves(player, board):
+  enemy_turn = False
   legal_moves = []
   x = player[0]
   y = player[1]
-  legal_moves = check_diagonal_moves(x,y,board)
   
-  for move in legal_moves:
-    if move != None:
-      print(move) 
+  try:
+    if enemy_turn:
+        board = inverse_board(board[:])
+        legal_moves = check_diagonal_moves(3 - x, 3 - y, board, enemy_turn)
+        legal_moves = convert_moves(legal_moves)
+    else:
+        legal_moves = check_diagonal_moves(x, y, board, False)
+    
+    for move in legal_moves:
+        if move != None:
+            print(move) 
+  except Exception:
+    print("No hay movimientos disponibles")
   #print(legal_moves) 
 
-board = [[0,0,0,0],
-         [0,4,0,0],
-         [0,0,3,0],
-         [0,2,0,1]
+board = [[4,0,0,0],
+         [0,3,0,0],
+         [0,0,1,0],
+         [0,2,0,0]
          ]
-generate_legal_moves((3,3), board)
+generate_legal_moves((3,1), board)
      
 #print(generar_movimientos(board1, 'o'))
 """
