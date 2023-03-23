@@ -1,13 +1,19 @@
 def scoreCount(board):
-    score = 0 
-    for row in board:
-      for column in row:
-        if column != 0:
-          if column > 2: #Enemy pieces
+  score = 0 
+  for row in range(len(board)):
+    for column in range(len(board[row])):
+      if board[row][column] != 0:
+        if board[row][column] > 2: #Enemy pieces
+          if row == 4:
+            score -=5
+          else:
             score -= 1
-          if column <= 2: #My pieces
+        if board[row][column] <= 2: #My pieces
+          if row == 0:
+            score += 5
+          else:
             score += 1
-    return score  
+  return score 
 
 def count_right_diagonal_enemies(x, y, board, enemy_turn):
   if enemy_turn:
@@ -277,12 +283,15 @@ def generate_legal_moves(board, player):
  # except Exception:
   #  print("No hay movimientos disponibles")
 
+ 
+
 board = [[4,0,0,0],
          [0,3,0,0],
          [0,0,1,0],
          [0,2,0,0]
-         ]
+        ]
 
-generate_legal_moves(board, "p1")
+#generate_legal_moves(board, "p2")
+print(scoreCount(board))
 
 
