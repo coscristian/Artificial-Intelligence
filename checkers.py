@@ -136,6 +136,7 @@ def can_only_eat_one_piece(board, x, y):
 """
 def can_eat(board, x, y, enemy_turn):
   enemy_pieces = get_enemy_board_pieces(board, enemy_turn)
+  enemy_pieces.sort()
   for enemy_piece in enemy_pieces:
     if enemy_piece == board[x - 1][y - 1]:
       return [x - 1, y - 1]
@@ -253,10 +254,10 @@ def generate_legal_moves(player, board):
   #  print("No hay movimientos disponibles")
 
 board = [[0,0,0,0],
-         [0,4,0,3],
-         [0,0,1,0],
-         [0,2,0,0]
+         [0,0,0,0],
+         [4,0,3,0],
+         [0,2,1,0]
          ]
 
-generate_legal_moves((2,2), board)
+generate_legal_moves((3,1), board)
      
